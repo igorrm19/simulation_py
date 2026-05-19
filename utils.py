@@ -1,21 +1,16 @@
 import matplotlib.pyplot as plt
 import numpy as np
+import warnings
+warnings.filterwarnings("ignore")
 
 def plot_fitness_evolution(logbook, filename="fitness_evolution.png"):
-    """
-    Plota a evolução da fitness (Throughput e BER) ao longo das gerações.
-    """
     gen = logbook.select("gen")
     fit_maxs = np.array(logbook.select("max"))
     fit_avgs = np.array(logbook.select("avg"))
     
-    # O GA otimiza (Throughput, -BER). Então extraímos os componentes:
-    # Máximos da população
     throughput_max = fit_maxs[:, 0]
-    # O BER foi negado na fitness, então invertemos para plotar o valor real do menor BER encontrado
     ber_min = -fit_maxs[:, 1]
     
-    # Médias da população
     throughput_avg = fit_avgs[:, 0]
     ber_avg = -fit_avgs[:, 1]
     
@@ -36,7 +31,10 @@ def plot_fitness_evolution(logbook, filename="fitness_evolution.png"):
     ax2.plot(gen, ber_min, 'r-', label='BER Min')
     ax2.plot(gen, ber_avg, 'r--', alpha=0.5, label='BER Médio')
     ax2.tick_params(axis='y', labelcolor=color)
-    ax2.set_yscale('log')
+    
+    if np.any(ber_min > 0) or np.any(ber_avg > 0):
+        ax2.set_yscale('log')
+        
     ax2.legend(loc='upper right')
 
     fig.tight_layout()  
@@ -44,11 +42,7 @@ def plot_fitness_evolution(logbook, filename="fitness_evolution.png"):
     plt.savefig(filename)
     plt.close()
 
-
 def plot_ber_vs_snr(snr_db_range, ber_direct, ber_af, filename="ber_vs_snr.png"):
-    """
-    Plota a curva BER vs SNR para os casos com e sem Relay AF.
-    """
     plt.figure(figsize=(10, 6))
     plt.semilogy(snr_db_range, ber_direct, 'r--o', label='MIMO-GFDM (Link Direto)')
     plt.semilogy(snr_db_range, ber_af, 'b-s', label='MIMO-GFDM (AF Relay)')
@@ -61,9 +55,6 @@ def plot_ber_vs_snr(snr_db_range, ber_direct, ber_af, filename="ber_vs_snr.png")
     plt.close()
 
 def plot_comparison(throughput_before, throughput_after, ber_before, ber_after, filename="comparison.png"):
-    """
-    Plota barras comparativas antes e depois da otimização.
-    """
     labels = ['Antes (Default)', 'Depois (Otimizado)']
     throughputs = [throughput_before, throughput_after]
     bers = [ber_before, ber_after]
@@ -83,10 +74,10 @@ def plot_comparison(throughput_before, throughput_after, ber_before, ber_after, 
     rects2 = ax2.bar(x + width/2, bers, width, label='BER', color='red')
     ax2.set_ylabel('BER', color='red')
     ax2.tick_params(axis='y', labelcolor='red')
-    ax2.set_yscale('log')
+    if any(b > 0 for b in bers):
+        ax2.set_yscale('log')
     
     fig.tight_layout()
     plt.title('Comparação de Performance (SNR fixo)')
     plt.savefig(filename)
     plt.close()
-

@@ -1,63 +1,92 @@
-# Simulação 5G NR: MIMO-GFDM com AF Relay e Algoritmo Genético
+# 📡 Simulação 5G NR: MIMO-GFDM com AF Relay e Inteligência Evolutiva
 
-Este projeto implementa uma simulação simplificada de um sistema de comunicação da camada física (PHY) inspirado no 5G NR. Ele integra as tecnologias:
-- **MIMO (Multiple-Input Multiple-Output)**: Transmissão por múltiplas antenas (2x2).
-- **GFDM (Generalized Frequency Division Multiplexing)**: Modulação não-ortogonal.
-- **AF Relay (Amplify-and-Forward)**: Comunicação cooperativa.
-- **Algoritmo Genético (GA)**: Otimização de enlace.
+Este repositório contém um simulador robusto da camada física (PHY) voltado para tecnologias candidatas e aplicadas no ecossistema de redes móveis **5G NR** e além. O projeto foca em avaliar o ganho de eficiência espectral e mitigação de erros através do uso de comunicação cooperativa e algoritmos genéticos.
 
-## Requisitos
-As dependências do projeto são: `numpy`, `scipy`, `matplotlib` e `deap`.
-Você pode instalá-las com:
+---
+
+## ✨ Principais Características
+
+- **MIMO (Multiple-Input Multiple-Output)**: Processamento e modulação com múltiplas antenas (2x2), com suporte para esquemas até 64-QAM.
+- **Forma de Onda GFDM**: Modulação *Generalized Frequency Division Multiplexing*, implementada com filtros Root-Raised Cosine para reduzir emissões fora de banda (OOBE).
+- **Comunicação Cooperativa (AF Relay)**: Modelagem de uma antena repetidora no modo *Amplify-and-Forward* para combater o desvanecimento de Rayleigh.
+- **Equalização Avançada (MMSE)**: Filtro dinâmico para anular a interferência cruzada do MIMO sem causar amplificação catastrófica do ruído.
+- **Otimização via Machine Learning**: Utilização de Algoritmo Genético (NSGA-II) para calibração simultânea de múltiplos objetivos: maximização de Throughput (Vazão) e minimização do BER (Taxa de Erro de Bit).
+
+---
+
+## ⚙️ Pré-requisitos e Instalação
+
+O projeto foi construído sobre Python 3.10+ e foca fortemente em operações matriciais otimizadas em CPU. 
+
+### 1. Clonando ou Acessando o Repositório
+Navegue até a pasta do projeto no seu terminal:
+```bash
+cd /caminho/para/simulation_py
+```
+
+### 2. Configurando o Ambiente Virtual (Recomendado)
+A melhor prática para executar este projeto isoladamente é criar um ambiente virtual (`venv`):
+```bash
+# Cria o ambiente virtual na pasta venv/
+python -m venv venv
+
+# Ativa o ambiente virtual (Linux / macOS)
+source venv/bin/activate
+# Ativa o ambiente virtual (Windows)
+# venv\Scripts\activate
+```
+
+### 3. Instalando Dependências
+Com o ambiente ativado, instale os pacotes base de dados e plotagem:
 ```bash
 pip install numpy scipy matplotlib deap
 ```
+*(Caso esteja utilizando um ambiente global no Linux protegido pelo PEP-668, adicione a flag `--break-system-packages` caso saiba o que está fazendo).*
 
-## Como Executar
-Basta rodar o arquivo principal:
+---
+
+## 🚀 Como Executar
+
+A execução principal do projeto abstrai as simulações e orquestra automaticamente os comparativos base (Sem IA) versus otimizados (Com IA).
+
+Para iniciar a simulação, simplesmente rode o maestro do projeto:
+
 ```bash
 python main.py
 ```
-O script gerará três gráficos no diretório atual:
-1. `ber_vs_snr.png`: Comparação do BER vs SNR com e sem o AF Relay.
-2. `fitness_evolution.png`: Evolução da aptidão (Throughput e BER) ao longo das gerações do GA.
-3. `comparison.png`: Comparação de desempenho antes e depois da otimização para um SNR específico.
 
-## Modelagem Matemática
+**Durante a execução, o terminal exibirá:**
+1. A varredura (Sweep) de SNR de 0dB a 20dB.
+2. A evolução geracional da Inteligência Artificial em tempo real.
+3. Os parâmetros vencedores descobertos pela máquina.
+4. As taxas exatas de *Throughput* de ganho.
 
-### 1. Modulação GFDM
-No GFDM, os dados são organizados em uma matriz onde temos $M$ subportadoras e $K$ subsímbolos. O número total de símbolos por bloco é $N = M \times K$.
-A matriz de modulação $A$ de dimensão $N \times N$ é construída a partir de pulsos deslocados no tempo e na frequência:
-$$g_{m,k}[n] = g[(n - kM) \bmod N] \cdot e^{j 2 \pi \frac{m n}{M}}$$
-O sinal transmitido é dado por $x = A \mathbf{s}$, onde $\mathbf{s}$ é o vetor de símbolos de dados.
+---
 
-### 2. MIMO e Canal Rayleigh
-Utilizamos um modelo de canal plano (flat-fading) com desvanecimento de Rayleigh: $H \sim \mathcal{CN}(0, 1)$.
-Para um sistema 2x2, $H$ é uma matriz $2 \times 2$. O sinal recebido no destino através do link direto é:
-$$y_{d1} = H_{sd} x + n_{d1}$$
-Onde $n_{d1}$ é o ruído AWGN com variância $N_0$.
+## 📊 Resultados e Saídas Gráficas
 
-### 3. Relay Cooperativo Amplify-and-Forward (AF)
-Na fase 1, o relay também recebe o sinal:
-$$y_r = H_{sr} x + n_r$$
-Na fase 2, o relay amplifica o sinal com um fator $\beta$ e o retransmite:
-$$\beta = \sqrt{\frac{G}{P_r}}$$
-Onde $G$ é o ganho do relay e $P_r$ é a potência do sinal recebido no relay.
-O sinal recebido no destino via relay é:
-$$y_{d2} = H_{rd} (\beta y_r) + n_{d2}$$
+A execução gera automaticamente **3 relatórios gráficos em alta qualidade** salvos na raiz do seu projeto:
 
-### 4. Receptor e Detecção MMSE Combinada
-O destino combina os sinais $y_{d1}$ e $y_{d2}$ para decodificar $x$.
-$$y = \begin{bmatrix} y_{d1} \\ y_{d2} \end{bmatrix} = \begin{bmatrix} H_{sd} \\ \beta H_{rd} H_{sr} \end{bmatrix} x + \tilde{n}$$
-A equalização é feita usando o detector Minimum Mean Square Error (MMSE):
-$$W = (H_{eq}^H H_{eq} + N_0 I)^{-1} H_{eq}^H$$
-E os símbolos estimados do GFDM são recuperados usando Zero-Forcing (pseudo-inversa de $A$).
+- `ber_vs_snr.png`: Gráfico *Waterfall* logarítmico provando o ganho da antena Relay contra o desvanecimento do link direto.
+- `fitness_evolution.png`: Gráfico temporal exibindo as tentativas da IA, a estabilização do ganho de internet (eixo Y1) e a queda do ruído (eixo Y2).
+- `comparison.png`: Gráfico de barras atestando a diferença de Vazão e Erro (O *Trade-Off* matemático) após a aplicação dos resultados da inteligência artificial.
 
-### 5. Algoritmo Genético
-O GA (`deap`) busca otimizar a camada de enlace alterando:
-- **Tx Power**: Potência de transmissão $\in [0.5, 2.0]$.
-- **Relay Gain**: Fator de ganho de amplificação $G \in [0.5, 3.0]$.
-- **Subportadoras ($M$)**: $\{4, 8, 16\}$.
-- **Modulação**: $\{BPSK, QPSK, 16QAM, 64QAM\}$.
+---
 
-A **função objetivo** visa maximizar o Throughput e minimizar o BER, ponderados internamente no DEAP. Se o BER for excessivamente alto, aplica-se uma forte penalidade no Throughput.
+## 📁 Estrutura do Projeto e Documentação
+
+O código foi rigorosamente componentizado seguindo o paradigma de engenharia de software sustentável. Para manter o código limpo, **todos os comentários teóricos, fórmulas e explicações foram movidos para a pasta `/docs/`**.
+
+### Diretório `docs/`
+Para entender profundamente a matemática e as equações presentes no código, visite a documentação modular:
+
+- 📄 [`docs/channel.md`](docs/channel.md) - Modelagem da física e ruído (Rayleigh/AWGN).
+- 📄 [`docs/relay.md`](docs/relay.md) - Dinâmica de Amplificação da antena cooperativa.
+- 📄 [`docs/mimo.md`](docs/mimo.md) - Transmissores, Receptores e Equalizador MMSE.
+- 📄 [`docs/gfdm.md`](docs/gfdm.md) - Matemática da modulação matricial paralela GFDM.
+- 📄 [`docs/optimization.md`](docs/optimization.md) - Algoritmo Genético do pacote DEAP.
+- 📄 [`docs/simulation.md`](docs/simulation.md) - Orquestrador de blocos do Monte Carlo.
+- 📄 [`docs/graficos.md`](docs/graficos.md) - Como ler cientificamente os gráficos gerados.
+
+---
+*Projeto voltado para simulação técnica de PHY-Layer de redes móveis (IEEE).*

@@ -1,7 +1,7 @@
 import numpy as np
-from simulation import run_single_simulation
-from optimization import run_genetic_algorithm
-from utils import plot_fitness_evolution, plot_ber_vs_snr, plot_comparison
+from src.simulation import run_single_simulation
+from src.optimization import run_genetic_algorithm
+from src.utils import plot_fitness_evolution, plot_ber_vs_snr, plot_comparison
 
 def main():
     print("Iniciando Simulação 5G NR MIMO-GFDM-AF...")

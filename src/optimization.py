@@ -1,7 +1,7 @@
 import random
 import numpy as np
 from deap import base, creator, tools, algorithms
-from simulation import run_single_simulation
+from src.simulation import run_single_simulation
 
 creator.create("FitnessMulti", base.Fitness, weights=(1.0, -1.0))
 creator.create("Individual", list, fitness=creator.FitnessMulti)

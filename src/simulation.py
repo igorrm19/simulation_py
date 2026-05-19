@@ -1,8 +1,8 @@
 import numpy as np
-from channel import rayleigh_channel, add_awgn
-from relay import get_af_beta, apply_af_relay
-from gfdm import generate_gfdm_matrix, gfdm_modulate, gfdm_demodulate_zf
-from mimo import generate_symbols, demodulate_symbols, mmse_detector
+from src.channel import rayleigh_channel, add_awgn
+from src.relay import get_af_beta, apply_af_relay
+from src.gfdm import generate_gfdm_matrix, gfdm_modulate, gfdm_demodulate_zf
+from src.mimo import generate_symbols, demodulate_symbols, mmse_detector
 
 def run_single_simulation(snr_db, tx_power, relay_gain, M, K, modulation_order, num_blocks=100, use_relay=True):
     N = M * K

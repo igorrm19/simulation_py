@@ -1,29 +1,35 @@
-# Documentação: `mimo.py`
+# Documentação Técnica: `mimo.py`
 
-## Visão Geral
-Este módulo foca na inteligência das múltiplas antenas (MIMO) e nas modulações de mercado utilizadas em celulares digitais. A modulação converte zeros e uns em coordenadas no plano real/imaginário (Fase e Amplitude).
+## 1. Fundamentação Teórica
+O Múltiplas-Entradas Múltiplas-Saídas (MIMO) é o coração das altas velocidades desde o LTE. Multiplicar antenas não apenas concentra feixes elétricos (Beamforming), mas cria **Diversidade Espacial** e **Multiplexação Espacial**. O módulo `mimo.py` lida com o mapeamento e desmapeamento na Constelação Digital (Digital Modulation) e com os algoritmos de Equalização e separação dos streams que se colidiram no ar.
 
-## Funções
+## 2. Detalhamento de Funções e Matemática
 
-### `generate_symbols(num_antennas, N, modulation_order)`
-**Objetivo:** Criar os bits binários de teste e convertê-los na modulação física QAM/PSK.
+### 2.1. Equalizadores (`mmse_detector` e `zf_detector`)
+**Propósito:** Inverter os efeitos do desvanecimento do Canal $H$ nas matrizes recebidas do ar. Quando os sinais são transmitidos pelas antenas, eles se emaranham.
 
-- **Parâmetros:**
-  - `num_antennas`: Para suportar diversidade espacial (ex: 2 antenas enviando streams diferentes).
-  - `N`: Quantidade de amostras.
-  - `modulation_order`: Ordem da constelação (2=BPSK, 4=QPSK, 16=16-QAM, 64=64-QAM).
-- **Funcionamento:** Sorteia uma corrente de números binários. Depois, agrupa os binários e os "plota" num gráfico complexo. Em QPSK, dois bits `(0, 1)` viram o número `-1 + 1j`. No 64-QAM, seis bits viram coordenadas mais refinadas, exigindo precisão na sintonia.
-- **Retorno:** Os símbolos complexos ajustados de energia normalizada e os bits corretos originais.
+- **`zf_detector(H)` (Zero-Forcing):**
+  A forma mais agressiva e simples de separar os dados das antenas. Consiste na pseudo-inversa de Moore-Penrose:
+  $$\mathbf{W}_{ZF} = (\mathbf{H}^H \mathbf{H})^{-1}\mathbf{H}^H$$
+  O ZF forçosamente zera a interferência, mas no limite de $H \to 0$ ele explode o ruído matemático do AWGN (Noise Enhancement).
 
-### `demodulate_symbols(s_hat, modulation_order)`
-**Objetivo:** Reverter as coordenadas complexas afetadas por ruído de volta para bits discretos.
+- **`mmse_detector(H, noise_var)` (Minimum Mean Square Error):**
+  O padrão da indústria. Ele minimiza o erro médio quadrático $\mathbb{E}[||\mathbf{s} - \hat{\mathbf{s}}||^2]$. Ao incluir o conhecimento de quanta energia de ruído $\sigma^2$ existe no ambiente, ele cria um balanço entre a eliminação de interferência co-canal e a manutenção do ruído:
+  $$\mathbf{W}_{MMSE} = (\mathbf{H}^H \mathbf{H} + \sigma^2 \mathbf{I})^{-1}\mathbf{H}^H$$
+  - **Entradas:** Matriz de desvanecimento complexa $H$, variância real do AWGN $\sigma^2$.
+  - **Saída:** A matriz de equalização corretiva $\mathbf{W}$. O sinal recuperado será $\hat{\mathbf{y}} = \mathbf{W}\mathbf{y}_{rx}$.
 
-- **Parâmetros:**
-  - `s_hat`: Os símbolos recebidos.
-  - `modulation_order`: O mapa que foi usado na origem.
-- **Funcionamento:** Corta o plano cartesiano em "quadrantes de decisão" (Hard Decision). Ex: Em BPSK, se o número tem parte Real maior que zero, ele é lido como bit 1, se for menor, bit 0. O algoritmo executa lógicas avançadas de aproximação aritmética para desmapear 16-QAM e 64-QAM.
+### 2.2. Geração e Mapeamento de Símbolos (`generate_symbols`)
+**Propósito:** Instanciar a Carga Útil (Payload) digital e inseri-la no domínio RF via Modulação de Amplitude em Quadratura (QAM).
 
-### Detecção Espacial (Equalizadores)
+- **Mapeamentos Suportados:**
+  - **BPSK (1 bit/símbolo):** Mapeamento físico unidimensional $\{-1, 1\}$.
+  - **QPSK (2 bits/símbolo):** Mapeamento 2D fase-amplitude nas raízes da unidade (normalizado para manter potência 1 via divisão por $\sqrt{2}$).
+  - **16-QAM (4 bits/símbolo):** Mapeamento de matriz $4\times4$. Valores base reais $\{-3, -1, 1, 3\}$. Fator de normalização em $\sqrt{10}$.
+  - **64-QAM (6 bits/símbolo):** Mapeamento ultra-denso. Níveis de amplitude complexa variando de -7 a 7, e o fator estrito de normalização energética global de $\sqrt{42}$.
+- **Retorno:** A função produz dois DataFrames: O vetor analógico Complexo com a onda perfeitamente moldada, e o Buffer de bits lógicos (para contagem de erros futura).
 
-- **`zf_detector(H)`:** Detector *Zero-Forcing*. Apenas inverte o canal de rádio ($H^{-1}$). Zera a interferência, mas no processo acaba explodindo qualquer ruído presente no fundo.
-- **`mmse_detector(H, noise_var)`:** Minimum Mean Square Error. O estado da arte de receivers em modens de Wi-Fi e 5G. Ele incorpora a variância do ruído na matriz de ponderação para conseguir o melhor meio-termo matemático entre "diminuir a interferência" e "não amplificar o ruído".
+### 2.3. Demodulação (`demodulate_symbols`)
+**Propósito:** A transição reversa. Converter a "sopa complexa" que sobrou depois do MMSE em bits lógicos firmes ("Hard Decision" Slicer).
+
+- **Mecânica Aritmética:** O algoritmo retira a normalização do QAM e insere as aproximações do receptor de Limites de Decisão. Em vez de calcular as distâncias euclidianas (Minimum Distance Rule), nós aplicamos matemática booleana sobre eixos em clipes (ex: `np.clip(np.round((r + 3) / 2), 0, 3)`) que fatia a malha IQ em caixas de tolerância rigorosa. Os bits originais são reconstruídos a partir destas localizações espaciais quantizadas.

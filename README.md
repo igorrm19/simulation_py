@@ -68,8 +68,22 @@ python main.py
 A execução gera automaticamente **3 relatórios gráficos em alta qualidade** salvos na raiz do seu projeto:
 
 - `ber_vs_snr.png`: Gráfico *Waterfall* logarítmico provando o ganho da antena Relay contra o desvanecimento do link direto.
+  
+  <p align="center">
+    <img src="ber_vs_snr.png" alt="BER vs SNR" width="600"/>
+  </p>
+
 - `fitness_evolution.png`: Gráfico temporal exibindo as tentativas da IA, a estabilização do ganho de internet (eixo Y1) e a queda do ruído (eixo Y2).
+
+  <p align="center">
+    <img src="fitness_evolution.png" alt="Evolução da Fitness" width="600"/>
+  </p>
+
 - `comparison.png`: Gráfico de barras atestando a diferença de Vazão e Erro (O *Trade-Off* matemático) após a aplicação dos resultados da inteligência artificial.
+
+  <p align="center">
+    <img src="comparison.png" alt="Comparação Antes e Depois" width="600"/>
+  </p>
 
 ---
 

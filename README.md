@@ -102,6 +102,7 @@ Para entender profundamente a matemática e as equações presentes no código, 
 - 📄 [`docs/optimization.md`](docs/optimization.md) - Algoritmo Genético do pacote DEAP.
 - 📄 [`docs/simulation.md`](docs/simulation.md) - Orquestrador de blocos do Monte Carlo.
 - 📄 [`docs/graficos.md`](docs/graficos.md) - Como ler cientificamente os gráficos gerados.
+- 📄 [`docs/resultados.md`](docs/resultados.md) - Interpretação detalhada dos ganhos e resultados do sistema.
 
 ---
 *Projeto voltado para simulação técnica de PHY-Layer de redes móveis (IEEE).*

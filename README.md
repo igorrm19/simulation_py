@@ -1,6 +1,7 @@
 # 📡 Simulação 5G NR: MIMO-GFDM com AF Relay e Inteligência Evolutiva
 
-Este repositório contém um simulador robusto da camada física (PHY) voltado para tecnologias candidatas e aplicadas no ecossistema de redes móveis **5G NR** e além. O projeto foca em avaliar o ganho de eficiência espectral e mitigação de erros através do uso de comunicação cooperativa e algoritmos genéticos.
+**O que é este projeto?**
+Este repositório contém um simulador robusto da camada física (PHY) para redes móveis **5G NR (New Radio)** e tecnologias futuras. Ele foi desenvolvido em Python para avaliar o ganho de eficiência espectral e a mitigação de erros de transmissão através do uso de comunicação cooperativa (AF Relay) e inteligência artificial (Algoritmos Genéticos para otimizar Throughput vs. BER).
 
 ---
 
